@@ -1,0 +1,25 @@
+[package]
+name = "image-batch-converter"
+version = "0.1.0"
+edition = "2024"
+description = "A simple application to convert images in batch from one format to another."
+
+[package.metadata.bundle]
+name = "ImageBatchConverter"
+identifier = "dev.akicoffeecat.imagebatchconverter"
+# This should be an array of file paths or globs (with images in various sizes/formats);
+# cargo-bundle will automatically convert between image formats as necessary for different platforms.
+# Supported formats include ICNS, ICO, PNG, and anything else that can be decoded by the image crate.
+# Icons intended for high-resolution (e.g. Retina) displays should have a filename with @2x just before the extension.
+icon = []
+# List of files or directories which will be copied to the resources section of the bundle. Globs are supported."
+resources = []
+copyright = "Copyright 2025 (C) W. Akira Mizutani"
+category = "ImageUtility"
+osx_frameworks = []
+osx_minimuim_system_version = "10.11"
+osx_url_schemes = []
+
+[dependencies]
+anyhow = "1.0.99"
+image = "0.25.6"
