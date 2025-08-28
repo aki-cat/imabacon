@@ -16,24 +16,26 @@ jobs:
           use_api: true
           scheme: semver
           increment: patch
+    outputs:
+      version: ${{ steps.version.outputs.version }}
   build-mac:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
       platform: macos
-      version: ${{ needs.version.outputs.version }}
+      version: ${{ needs.bump-version.outputs.version }}
       build-type: debug
   build-linux:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
       platform: ubuntu
-      version: ${{ needs.version.outputs.version }}
+      version: ${{ needs.bump-version.outputs.version }}
       build-type: debug
   build-win:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
       platform: windows
-      version: ${{ needs.version.outputs.version }}
+      version: ${{ needs.bump-version.outputs.version }}
       build-type: debug
