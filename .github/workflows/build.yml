@@ -22,18 +22,18 @@ jobs:
     with:
       platform: macos
       version: ${{ needs.version.outputs.version }}
-      build-type: dev
+      build-type: debug
   build-linux:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
       platform: ubuntu
       version: ${{ needs.version.outputs.version }}
-      build-type: dev
+      build-type: debug
   build-win:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
       platform: windows
       version: ${{ needs.version.outputs.version }}
-      build-type: dev
+      build-type: debug

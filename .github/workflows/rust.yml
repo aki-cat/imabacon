@@ -26,10 +26,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build
-        run: cargo build --profile ${{ inputs.build-type }}
+        run: cargo build ${{ inputs.build-type == 'release' && '--release' || '' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: imabacon-${{ inputs.platform }}-${{ inputs.version }}"
-          path: target/${{ inputs.build-type }}/imabacon
+          path: target/${{ inputs.build-type == 'release' && 'release' || 'debug' }}/imabacon
