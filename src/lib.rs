@@ -23,3 +23,7 @@ pub fn convert(file_path: &path::Path) -> anyhow::Result<()> {
 
     Ok(())
 }
+
+pub fn list_files() -> anyhow::Result<()> {
+    todo!()
+}

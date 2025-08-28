@@ -1,12 +1,12 @@
 [package]
-name = "image-batch-converter"
+name = "imabacon"
 version = "0.1.0"
 edition = "2024"
 description = "A simple application to convert images in batch from one format to another."
 
 [package.metadata.bundle]
 name = "ImageBatchConverter"
-identifier = "dev.akicoffeecat.imagebatchconverter"
+identifier = "dev.akicoffeecat.imabacon"
 # This should be an array of file paths or globs (with images in various sizes/formats);
 # cargo-bundle will automatically convert between image formats as necessary for different platforms.
 # Supported formats include ICNS, ICO, PNG, and anything else that can be decoded by the image crate.
