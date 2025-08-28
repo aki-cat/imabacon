@@ -6,28 +6,27 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-mac:
     runs-on: macos-13
 
     steps:
       - uses: actions/checkout@v4
-      # - name: Run tests
-      #   run: cargo test
       - name: Build
         run: cargo build
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: image-batch-converter
-          path: target/debug/image-batch-converter
-  deploy:
-    runs-on: macos-13
-    needs: build
+          name: imabacon-macos
+          path: target/debug/imabacon
+  build-linux:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: image-batch-converter
-          path: /opt
-      - name: List artifacts
-        run: ls /opt
+          name: imabacon-linux
+          path: target/debug/imabacon
