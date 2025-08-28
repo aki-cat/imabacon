@@ -4,16 +4,35 @@ use std::path;
 
 use image::ExtendedColorType;
 
-pub fn convert(file_path: &path::Path, output_dir: &path::Path) -> anyhow::Result<()> {
+pub fn convert(file_path: &path::Path, output_dir: &path::Path) -> anyhow::Result<String> {
+    let Some(extension) = file_path.extension() else {
+        return Err(anyhow::Error::msg(format!(
+            "`{}` has no extension",
+            file_path.to_str().unwrap()
+        )));
+    };
+    let extension = extension.to_str().unwrap();
+
+    let format = match extension {
+        "png" => image::ImageFormat::Png,
+        "tiff" | "tif" => image::ImageFormat::Tiff,
+        _ => {
+            return Err(anyhow::Error::msg(format!(
+                "`{}` has unsupported extension",
+                file_path.to_str().unwrap()
+            )));
+        }
+    };
+
     let file = io::BufReader::new(fs::File::open(file_path)?);
-    let img = image::load(file, image::ImageFormat::Png)?;
+    let img = image::load(file, format)?;
 
     let buffer = img.to_rgb8();
     let file_name_base = String::from(file_path.file_stem().unwrap().to_str().unwrap());
-    println!("{:?}", file_name_base);
 
+    let new_file = format!("{}/{file_name_base}.jpg", output_dir.to_str().unwrap());
     image::save_buffer_with_format(
-        format!("{}/{file_name_base}.jpeg", output_dir.to_str().unwrap()),
+        &new_file,
         &buffer,
         buffer.width(),
         buffer.height(),
@@ -21,7 +40,7 @@ pub fn convert(file_path: &path::Path, output_dir: &path::Path) -> anyhow::Resul
         image::ImageFormat::Jpeg,
     )?;
 
-    Ok(())
+    Ok(new_file)
 }
 
 pub fn list_files(input_dir: &str) -> anyhow::Result<impl Iterator<Item = String>> {
