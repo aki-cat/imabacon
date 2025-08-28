@@ -1,32 +1,35 @@
 name: Build Debug
 
-on: [workflow_dispatch]
+on:
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      build-type:
+        required: true
+        type: string
+
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-mac:
-    runs-on: macos-13
+  build:
+    runs-on: ${{ inputs.platform }}-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Build
-        run: cargo build
+        run: cargo build --profile ${{ inputs.build-type }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: imabacon-macos
-          path: target/debug/imabacon
-  build-linux:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build
-        run: cargo build
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: imabacon-linux
-          path: target/debug/imabacon
+          name: imabacon-${{ inputs.platform }}-${{ inputs.version }}"
+          path: target/${{ inputs.build-type }}/imabacon

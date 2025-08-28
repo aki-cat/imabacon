@@ -1,0 +1,39 @@
+name: Build Debug
+
+on: [workflow_dispatch]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get next version
+        uses: reecetech/version-increment@2024.10.1
+        id: version
+        with:
+          use_api: true
+          scheme: semver
+          increment: patch
+  build-mac:
+    needs: bump-version
+    uses: ./.github/workflows/rust.yml
+    with:
+      platform: macos
+      version-increment: ${{ needs.version.outputs.version }}
+      build-type: dev
+  build-linux:
+    needs: bump-version
+    uses: ./.github/workflows/rust.yml
+    with:
+      platform: ubuntu
+      version-increment: ${{ needs.version.outputs.version }}
+      build-type: dev
+  build-win:
+    needs: bump-version
+    uses: ./.github/workflows/rust.yml
+    with:
+      platform: windows
+      version-increment: ${{ needs.version.outputs.version }}
+      build-type: dev
