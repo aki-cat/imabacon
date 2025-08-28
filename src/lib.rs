@@ -24,6 +24,17 @@ pub fn convert(file_path: &path::Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn list_files() -> anyhow::Result<()> {
-    todo!()
+pub fn list_files() -> anyhow::Result<Vec<String>> {
+    let out = fs::read_dir("in")?
+        .filter_map(|dir_entry| {
+            let entry = dir_entry.unwrap();
+            let entry_type = entry.file_type().unwrap();
+
+            match entry_type.is_file() {
+                true => Some(String::from(entry.path().as_path().to_str().unwrap())),
+                false => None,
+            }
+        })
+        .collect();
+    Ok(out)
 }
