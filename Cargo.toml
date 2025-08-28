@@ -1,6 +1,6 @@
 [package]
 name = "imabacon"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "A simple application to convert images in batch from one format to another."
 
@@ -21,5 +21,26 @@ osx_minimuim_system_version = "10.11"
 osx_url_schemes = []
 
 [dependencies]
-anyhow = "1.0.99"
-image = "0.25.6"
+
+[dependencies.anyhow]
+version = "1.0.99"
+features = []
+
+[dependencies.image]
+version = "0.25.6"
+features = ["png", "tiff", "jpeg"]
+
+[profile]
+
+[profile.dev]
+codegen-units = 1
+strip = true
+opt-level = 0
+lto = true
+
+[profile.release]
+codegen-units = 1
+strip = true
+opt-level = "z"
+lto = true
+panic = "abort"
