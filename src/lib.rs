@@ -9,9 +9,11 @@ pub fn convert(file_path: &path::Path) -> anyhow::Result<()> {
     let img = image::load(file, image::ImageFormat::Png)?;
 
     let buffer = img.to_rgb8();
+    let file_name_base = file_path.file_stem().unwrap();
+    println!("{:?}", file_name_base);
 
     image::save_buffer_with_format(
-        "out.jpeg",
+        format!("out/{}.jpeg", file_name_base.to_str().unwrap()),
         &buffer,
         buffer.width(),
         buffer.height(),
