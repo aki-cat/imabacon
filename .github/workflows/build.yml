@@ -16,15 +16,40 @@ jobs:
   bump-version:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set commit info
+        id: get-sha
+        shell: bash
+        run: |
+          echo $GITHUB_SHA
+          sha_value=$( git rev-parse --short $GITHUB_SHA )
+          echo $sha_value
+          if [ -z $sha_value ]; then exit 1; fi
+          echo "sha_short=${sha_value}"
+          echo "sha_short=${sha_value}" >> $GITHUB_OUTPUT
+
       - name: Get next version
         uses: reecetech/version-increment@2024.10.1
         id: version
         with:
-          use_api: true
           scheme: semver
           increment: patch
+
+      - name: Set version name
+        id: version-name
+        run: |
+          if [ -z "${{ steps.get-sha.outputs.sha_short }}" ]; then
+            exit 1;
+          else
+            echo "sha_value = ${{ steps.get-sha.outputs.sha_short }}";
+          fi
+          echo "patch-version=${{ format('{0}-{1}', steps.version.outputs.version, steps.get-sha.outputs.sha_short) }}" >> $GITHUB_OUTPUT
+          echo "release-version=${{ steps.version.outputs.current-version }}" >> $GITHUB_OUTPUT
     outputs:
-      version: ${{ inputs.release && steps.version.outputs.current-version || steps.version.outputs.version }}
+      version: ${{ inputs.release && steps.version-name.outputs.release-version || steps.version-name.outputs.patch-version }}
+
   build-mac:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
@@ -32,6 +57,7 @@ jobs:
       platform: macos
       version: ${{ needs.bump-version.outputs.version }}
       build-type: ${{ inputs.release && 'release' || 'debug' }}
+
   build-linux:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
@@ -39,6 +65,7 @@ jobs:
       platform: ubuntu
       version: ${{ needs.bump-version.outputs.version }}
       build-type: ${{ inputs.release && 'release' || 'debug' }}
+
   build-win:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
