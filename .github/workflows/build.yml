@@ -1,6 +1,13 @@
-name: Build All
+name: Build
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Is it a release build?
+        type: boolean
+        required: false
+        default: false
 
 env:
   CARGO_TERM_COLOR: always
@@ -17,25 +24,25 @@ jobs:
           scheme: semver
           increment: patch
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ inputs.release && steps.version.outputs.current-version || steps.version.outputs.version }}
   build-mac:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
       platform: macos
       version: ${{ needs.bump-version.outputs.version }}
-      build-type: debug
+      build-type: ${{ inputs.release && 'release' || 'debug' }}
   build-linux:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
       platform: ubuntu
       version: ${{ needs.bump-version.outputs.version }}
-      build-type: debug
+      build-type: ${{ inputs.release && 'release' || 'debug' }}
   build-win:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
       platform: windows
       version: ${{ needs.bump-version.outputs.version }}
-      build-type: debug
+      build-type: ${{ inputs.release && 'release' || 'debug' }}
