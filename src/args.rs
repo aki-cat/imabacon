@@ -1,55 +1,65 @@
-use std::env;
-
-const APP_NAME: &str = "imabacon";
-
 #[derive(Debug)]
-
-pub(crate) struct AppArgs {
-    pub(crate) input: String,
-    pub(crate) output: String,
-    pub(crate) options: (),
+pub struct AppArgs {
+    pub input: String,
+    pub output: String,
+    pub options: (),
 }
 
-pub fn parse() -> anyhow::Result<AppArgs> {
+pub fn parse(mut args: impl Iterator<Item = String>) -> anyhow::Result<AppArgs> {
+    const ERR_FORMAT: &str = "Missing or invalid {arg_name} arg. Format should be:\n`{app_name} -i <path to input directory> -o <path to output directory>`";
+    const APP_NAME: &str = env!("CARGO_CRATE_NAME");
+
+    let input_err = Err(anyhow::Error::msg(
+        ERR_FORMAT
+            .replace("{arg_name}", "input")
+            .replace("{app_name}", APP_NAME),
+    ));
+
+    let output_err = Err(anyhow::Error::msg(
+        ERR_FORMAT
+            .replace("{arg_name}", "output")
+            .replace("{app_name}", APP_NAME),
+    ));
+
     let mut input = None;
     let mut output = None;
 
-    let mut iter = env::args().peekable();
     'parse: loop {
-        let Some(arg) = iter.next() else {
+        let Some(arg) = args.next() else {
             break 'parse;
         };
 
-        if arg == "-i"
-            && let Some(value) = iter.peek()
-            && !value.starts_with("-")
-        {
-            input = Some(value.clone())
+        if arg == "-i" {
+            match args.next() {
+                Some(value) => {
+                    if value.starts_with("-") || input.is_some() {
+                        return input_err;
+                    }
+                    input = Some(value.clone());
+                }
+                None => break 'parse,
+            }
         }
 
-        if arg == "-o"
-            && let Some(value) = iter.peek()
-            && !value.starts_with("-")
-        {
-            output = Some(value.clone())
+        if arg == "-o" {
+            match args.next() {
+                Some(value) => {
+                    if value.starts_with("-") || output.is_some() {
+                        return output_err;
+                    }
+                    output = Some(value.clone());
+                }
+                None => break 'parse,
+            }
         }
     }
-
-    const ERR_FORMAT: &str = "Missing or invalid {arg_name} arg. Format should be:\n`{app_name} -i <path to input directory> -o <path to output directory>`";
 
     if input.is_none() {
-        return Err(anyhow::Error::msg(
-            ERR_FORMAT
-                .replace("{arg_name}", "input")
-                .replace("{app_name}", APP_NAME),
-        ));
+        return input_err;
     }
+
     if output.is_none() {
-        return Err(anyhow::Error::msg(
-            ERR_FORMAT
-                .replace("{arg_name}", "output")
-                .replace("{app_name}", APP_NAME),
-        ));
+        return output_err;
     }
 
     Ok(AppArgs {
