@@ -34,7 +34,6 @@ features = ["png", "tiff", "jpeg"]
 
 [profile.dev]
 codegen-units = 1
-strip = true
 opt-level = 0
 lto = true
 
