@@ -21,25 +21,24 @@ osx_minimuim_system_version = "10.11"
 osx_url_schemes = []
 
 [dependencies]
-
 [dependencies.anyhow]
 version = "1.0.99"
-features = []
+default-features = false
 
 [dependencies.image]
 version = "0.25.6"
-features = ["png", "tiff", "jpeg"]
+default-features = false
+features = ["jpeg", "png", "tiff"]
 
 [profile]
-
 [profile.dev]
-codegen-units = 1
 opt-level = 0
 lto = true
+codegen-units = 1
 
 [profile.release]
-codegen-units = 1
-strip = true
 opt-level = "z"
+strip = true
 lto = true
 panic = "abort"
+codegen-units = 1
