@@ -6,6 +6,30 @@ use std::path;
 
 use image::ExtendedColorType;
 
+pub fn run(app_args: args::AppArgs) -> anyhow::Result<()> {
+    println!("\nArguments provided: {:?}\n", app_args);
+    list_files(&app_args.input)?.for_each(|file| {
+        match convert(path::Path::new(&file), path::Path::new(&app_args.output)) {
+            Ok(new_file) => println!("> Converted: {file} => {new_file}"),
+            Err(msg) => println!("Skipped: {msg}."),
+        }
+    });
+    Ok(())
+}
+
+pub fn list_files(input_dir: &str) -> anyhow::Result<impl Iterator<Item = String>> {
+    let out = fs::read_dir(input_dir)?.filter_map(|dir_entry| {
+        let entry = dir_entry.unwrap();
+        let entry_type = entry.file_type().unwrap();
+
+        match entry_type.is_file() {
+            true => Some(String::from(entry.path().as_path().to_str().unwrap())),
+            false => None,
+        }
+    });
+    Ok(out)
+}
+
 pub fn convert(file_path: &path::Path, output_dir: &path::Path) -> anyhow::Result<String> {
     let Some(extension) = file_path.extension() else {
         return Err(anyhow::Error::msg(format!(
@@ -43,17 +67,4 @@ pub fn convert(file_path: &path::Path, output_dir: &path::Path) -> anyhow::Resul
     )?;
 
     Ok(new_file)
-}
-
-pub fn list_files(input_dir: &str) -> anyhow::Result<impl Iterator<Item = String>> {
-    let out = fs::read_dir(input_dir)?.filter_map(|dir_entry| {
-        let entry = dir_entry.unwrap();
-        let entry_type = entry.file_type().unwrap();
-
-        match entry_type.is_file() {
-            true => Some(String::from(entry.path().as_path().to_str().unwrap())),
-            false => None,
-        }
-    });
-    Ok(out)
 }
