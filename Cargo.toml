@@ -26,10 +26,10 @@ version = "1.0.99"
 default-features = false
 
 [dependencies.image]
-version = "0.25.6"
+version = "0.25.10"
 default-features = false
 features = ["jpeg", "png", "tiff"]
-git = "https://github.com/aki-cat/image"
+# git = "https://github.com/aki-cat/image"
 
 [profile]
 [profile.dev]
