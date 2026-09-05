@@ -3,6 +3,9 @@ name: Build for Platform
 on:
   workflow_call:
     inputs:
+      runner:
+        required: true
+        type: string
       platform:
         required: true
         type: string
@@ -12,27 +15,79 @@ on:
       build-type:
         required: true
         type: string
-
+  workflow_dispatch:
+    inputs:
+      runner:
+        required: true
+        type: choice
+        options: [ubuntu-22.04, macos-15-intel, windows-2022]
+      platform:
+        required: true
+        type: choice
+        description: |
+          Platform name. Try to match runner.
+        options: [ubuntu-x86_64, macos-x86_64, win-x86_64]
+      version:
+        required: false
+        type: string
+        default: dev
+      build-type:
+        required: false
+        type: choice
+        options: [debug, release]
+        default: debug
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    runs-on: ${{ inputs.platform }}-latest
-
+  test:
+    runs-on: ${{ inputs.runner }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Run tests
+        shell: bash
         run: cargo test
+  build:
+    runs-on: ${{ inputs.runner }}
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
 
       - name: Build
+        shell: bash
         run: cargo build ${{ inputs.build-type == 'release' && '--release' || '' }}
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Define executable path
+        id: executable-path
+        shell: bash
+        run: |
+          if [ "${{ contains(inputs.platform, 'win') }}" = 'true' ]; then
+            executable_filename="imabacon.exe"
+          else
+            executable_filename="imabacon"
+          fi
+          executable_dir="target/${{ inputs.build-type }}"
+          executable_path="${executable_dir}/${executable_filename}"
+          echo "${executable_path}"
+          echo "executable-path=${executable_path}" >> $GITHUB_OUTPUT
+          echo "executable-dir=${executable_dir}" >> $GITHUB_OUTPUT
+          echo "executable-filename=${executable_filename}" >> $GITHUB_OUTPUT
+
+      - name: Pack uploadables
+        id: artifact-path
+        shell: bash
+        run: |
+          artifact_filename="imabacon-${{ inputs.platform }}-${{ inputs.version }}.tar"
+          tar -C ${{ steps.executable-path.outputs.executable-dir }} \
+            -cf "${artifact_filename}" "${{ steps.executable-path.outputs.executable-filename }}"
+          echo "artifact-filename=${artifact_filename}" >> $GITHUB_OUTPUT
+
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v7
         with:
-          name: imabacon-${{ inputs.platform }}-${{ inputs.version }}
-          path: target/${{ inputs.build-type == 'release' && 'release' || 'debug' }}/imabacon
+          path: ${{ steps.artifact-path.outputs.artifact-filename }}
+          archive: false

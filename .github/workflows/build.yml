@@ -14,21 +14,21 @@ env:
 
 jobs:
   bump-version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set commit info
-        id: get-sha
+        id: commit-hash
         shell: bash
         run: |
           echo $GITHUB_SHA
           sha_value=$( git rev-parse --short $GITHUB_SHA )
-          echo $sha_value
-          if [ -z $sha_value ]; then exit 1; fi
-          echo "sha_short=${sha_value}"
-          echo "sha_short=${sha_value}" >> $GITHUB_OUTPUT
+          echo "${sha_value}"
+          if [ -z "${sha_value}" ]; then exit 1; fi
+          echo "commit-short-hash=${sha_value}"
+          echo "commit-short-hash=${sha_value}" >> $GITHUB_OUTPUT
 
       - name: Get next version
         uses: reecetech/version-increment@2024.10.1
@@ -40,36 +40,58 @@ jobs:
       - name: Set version name
         id: version-name
         run: |
-          if [ -z "${{ steps.get-sha.outputs.sha_short }}" ]; then
+          if [ -z "${{ steps.commit-hash.outputs.commit-short-hash }}" ]; then
             exit 1;
           else
-            echo "sha_value = ${{ steps.get-sha.outputs.sha_short }}";
+            echo "sha_value = ${{ steps.commit-hash.outputs.commit-short-hash }}";
           fi
-          echo "patch-version=${{ format('{0}-{1}', steps.version.outputs.version, steps.get-sha.outputs.sha_short) }}" >> $GITHUB_OUTPUT
+          echo "pre-version=${{ format('{0}-{1}', steps.version.outputs.version, steps.commit-hash.outputs.commit-short-hash) }}" >> $GITHUB_OUTPUT
           echo "release-version=${{ steps.version.outputs.current-version }}" >> $GITHUB_OUTPUT
     outputs:
-      version: ${{ inputs.release && steps.version-name.outputs.release-version || steps.version-name.outputs.patch-version }}
+      version: ${{ inputs.release && steps.version-name.outputs.release-version || steps.version-name.outputs.pre-version }}
+      build-type: ${{ inputs.release && 'release' || 'debug' }}
 
-  build-mac:
+  build-mac-arm64:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
-      platform: macos
+      runner: macos-14
+      platform: macos-arm64
       version: ${{ needs.bump-version.outputs.version }}
-      build-type: ${{ inputs.release && 'release' || 'debug' }}
+      build-type: ${{ needs.bump-version.outputs.build-type }}
 
-  build-linux:
+  build-mac-x86_64:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
-      platform: ubuntu
+      runner: macos-15-intel
+      platform: macos-x84_64
       version: ${{ needs.bump-version.outputs.version }}
-      build-type: ${{ inputs.release && 'release' || 'debug' }}
+      build-type: ${{ needs.bump-version.outputs.build-type }}
 
-  build-win:
+  build-ubuntu-x86_64:
     needs: bump-version
     uses: ./.github/workflows/rust.yml
     with:
-      platform: windows
+      runner: ubuntu-22.04
+      platform: ubuntu-x86_64
       version: ${{ needs.bump-version.outputs.version }}
-      build-type: ${{ inputs.release && 'release' || 'debug' }}
+      build-type: ${{ needs.bump-version.outputs.build-type }}
+
+  build-ubuntu-arm64:
+    needs: bump-version
+    uses: ./.github/workflows/rust.yml
+    with:
+      runner: ubuntu-22.04-arm
+      platform: ubuntu-arm64
+      version: ${{ needs.bump-version.outputs.version }}
+      build-type: ${{ needs.bump-version.outputs.build-type }}
+
+  build-win-x86_64:
+    needs: bump-version
+    uses: ./.github/workflows/rust.yml
+    with:
+      runner: windows-2022
+      platform: win-x86_64
+      version: ${{ needs.bump-version.outputs.version }}
+      build-type: ${{ needs.bump-version.outputs.build-type }}
